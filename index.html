@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Generator | Nafiz Sheikh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #e5e7eb; }
+        .bkash-pink { color: #d12053; }
+        .bkash-bg { background-color: #d12053; }
+        .nagad-orange { color: #f1592a; }
+        .nagad-bg { background-color: #f1592a; }
+        
+        /* New Theme Styles */
+        .dev-ring {
+            position: relative; padding: 8px 24px; border-radius: 50px;
+            background: #111; display: inline-flex; align-items: center; gap: 10px; z-index: 1;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .dev-ring:hover { transform: scale(1.05); }
+        .dev-ring::before {
+            content: ''; position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px;
+            background: linear-gradient(45deg, #00dbde, #fc00ff, #00dbde, #fc00ff);
+            background-size: 400%; z-index: -1; filter: blur(6px);
+            animation: glowing 10s linear infinite; border-radius: 50px;
+        }
+        @keyframes glowing {
+            0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; }
+        }
+
+        .main-container {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        
+        .input-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(to right, #f953c6, #b91d73);
+        }
+    </style>
+</head>
+<body class="p-2 main-container">
+
+    <!-- Header with Image and Link -->
+    <div class="text-center mb-6 mt-4">
+        <a href="https://nafiz1000x.github.io/Nafizsheikh.web/" target="_blank" class="inline-block">
+            <div class="dev-ring">
+                <img src="https://iili.io/BPRbWzX.jpg" class="w-8 h-8 rounded-full object-cover border-2 border-white" alt="Nafiz Sheikh">
+                <span id="out-name" class="text-white text-sm font-bold uppercase flex items-center gap-2">
+                    Nafiz Sheikh <i class="fas fa-external-link-alt text-xs opacity-70"></i>
+                </span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Input Section with New Colorful Theme -->
+    <div class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-2xl mb-8 border-b-4 border-purple-600 bg-opacity-90 backdrop-blur-lg">
+        <div class="grid grid-cols-1 gap-4">
+            <select id="ui-type" onchange="toggleUI()" class="w-full border-2 border-purple-200 p-3 rounded-xl font-bold outline-none focus:border-purple-500 bg-purple-50 text-purple-900 transition-all">
+                <option value="bkash">Bkash (বিকাশ)</option>
+                <option value="nagad">Nagad (নগদ)</option>
+            </select>
+            <input type="text" id="in-user" placeholder="আপনার নাম" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            <input type="text" id="in-num" placeholder="মোবাইল নম্বর" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            <input type="text" id="in-trx" placeholder="Transaction ID" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            <input type="text" id="in-amt" placeholder="পরিমাণ" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            <input type="text" id="in-chg" placeholder="খরচ/চার্জ" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            <input type="text" id="in-time" placeholder="সময় ও তারিখ" class="border-2 border-gray-200 p-3 rounded-xl text-sm focus:border-pink-500 outline-none transition-all">
+            
+            <div class="flex gap-3 mt-2">
+                <button onclick="updateData()" class="flex-1 btn-gradient text-white py-3 rounded-xl font-bold active:scale-95 shadow-lg transition-all hover:shadow-xl">আপডেট করুন</button>
+                <button onclick="downloadImage()" class="flex-1 bg-gray-900 text-white py-3 rounded-xl font-bold active:scale-95 shadow-lg transition-all hover:bg-black hover:shadow-xl">ডাউনলোড</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Canvas (UNCHANGED INTERNAL STYLES) -->
+    <div id="receipt-canvas" class="max-w-[360px] mx-auto bg-white min-h-[680px] relative shadow-2xl overflow-hidden">
+        
+        <!-- Bkash UI (Kept original internal classes) -->
+        <div id="bkash-ui">
+            <div class="p-5 flex justify-between items-center mt-6">
+                <h2 class="bkash-pink font-bold text-[20px] leading-tight">আপনার সেন্ড মানি <span class="text-[#2eb85c]">সফল হয়েছে</span></h2>
+                <div class="w-10 h-10 border-2 border-[#2eb85c] rounded-full flex items-center justify-center">
+                    <i class="fas fa-check text-[#2eb85c] text-lg"></i>
+                </div>
+            </div>
+
+            <div class="px-5 flex items-center gap-4 py-4">
+                <div class="w-14 h-14 bg-[#e1f0ff] rounded-full flex items-center justify-center text-[#007aff] font-bold text-xl">
+                    <span id="bk-initial">0</span>
+                </div>
+                <div>
+                    <p id="bk-out-num" class="font-bold text-[#4d4d4d] text-[17px]">01xxxxxxx</p>
+                    <p id="bk-out-num2" class="text-xs text-gray-400">01xxxxxxxc</p>
+                </div>
+                <div class="ml-auto">
+                    <button class="border border-[#d12053] text-[#d12053] px-5 py-1.5 rounded-full text-xs font-bold">
+                        <i class="fas fa-phone-alt mr-1"></i> কল
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 border-t border-gray-100">
+                <div class="p-4 border-r border-b border-gray-100">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">সময়</p>
+                    <p id="bk-out-time" class="text-[13px] font-bold text-gray-700">04:52pm 01/06/25</p>
+                </div>
+                <div class="p-4 border-b border-gray-100">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">ট্রানজেকশন আইডি</p>
+                    <p id="bk-out-trx" class="text-[13px] font-bold text-gray-700 flex items-center gap-1 uppercase">CF11K4FU25 <i class="far fa-copy text-[#d12053] text-[10px]"></i></p>
+                </div>
+                <div class="p-4 border-r border-gray-100">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">সর্বমোট</p>
+                    <p id="bk-out-total" class="text-[17px] font-black text-gray-800">৳1,125.00</p>
+                    <p id="bk-out-break" class="text-[10px] text-gray-400 font-bold">৳1,120.00 + ৳5.00</p>
+                </div>
+                <div class="p-4">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">নতুন ব্যালেন্স</p>
+                    <p class="text-gray-400 font-bold text-[14px]">********** <i class="far fa-eye text-[#d12053] text-[10px]"></i></p>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-100">
+                <p class="text-[10px] text-gray-400 font-bold uppercase">রেফারেন্স</p>
+            </div>
+
+            <div class="flex gap-2 px-4 mt-4">
+                <div class="flex-1 border border-[#d12053] text-[#d12053] py-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1">
+                    <i class="fas fa-sync-alt text-[10px]"></i> অটো পে চালু করুন
+                </div>
+                <div class="flex-1 border border-[#d12053] text-[#d12053] py-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1">
+                    <i class="fas fa-share-alt text-[10px]"></i> শেয়ার
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-col items-center">
+                <div class="bg-[#d12053] w-9 h-9 rounded-full flex items-center justify-center text-white text-xs mb-3 shadow-lg">
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-[11px] text-gray-400 font-bold uppercase">আপনি অর্জন করেছেন</p>
+                <p class="text-[15px] font-bold text-gray-700">বিকাশ রিওয়ার্ড পয়েন্ট</p>
+                <p class="text-[11px] text-gray-500 mt-1">পয়েন্ট ব্যবহার করতে <span class="text-[#d12053] font-bold">বিকাশ রিওয়ার্ডস</span> চেক করুন!</p>
+            </div>
+
+            <div class="absolute bottom-0 w-full bkash-bg text-white p-4 flex justify-between items-center">
+                <span class="font-bold text-[15px]">হোম-এ ফিরে যাই</span>
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+
+        <!-- Nagad UI (Kept original internal classes) -->
+        <div id="nagad-ui" class="hidden bg-[#f7f7f7] min-h-[680px]">
+             <div class="pt-10 text-center">
+                <div class="w-24 h-24 border-[6px] border-orange-500 rounded-full flex items-center justify-center mx-auto bg-white">
+                    <i class="fas fa-check text-orange-500 text-4xl"></i>
+                </div>
+                <h1 class="nagad-orange text-[26px] font-bold mt-6">সেন্ড মানি সফল</h1>
+                <p id="ng-out-num" class="text-gray-700 font-bold mt-4 text-xl tracking-wide">01320925346</p>
+            </div>
+            <div class="mt-10 px-8 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="nagad-orange font-bold text-[15px]">ট্রানজেকশন আইডি</span><span id="ng-out-trx" class="text-gray-700 font-bold uppercase">GJF53357</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="nagad-orange font-bold text-[15px]">পরিমাণ</span><span id="ng-out-amt" class="text-gray-700 font-bold">1000 টাকা</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="nagad-orange font-bold text-[15px]">সর্বমোট</span><span id="ng-out-total" class="text-gray-700 font-bold">1010 টাকা</span></div>
+                <div class="flex justify-between items-center border-b border-gray-200 pb-2"><span class="nagad-orange font-bold text-[15px]">সময়</span><span id="ng-out-time" class="text-gray-400 font-bold text-xs">25 April 2026, 06:48 AM</span></div>
+            </div>
+            <div class="absolute bottom-8 w-full px-8">
+                <div class="nagad-bg text-white text-center py-3 rounded-full font-bold text-lg shadow-lg">হোম এ ফিরে যান</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleUI() {
+            const type = document.getElementById('ui-type').value;
+            document.getElementById('bkash-ui').classList.toggle('hidden', type !== 'bkash');
+            document.getElementById('nagad-ui').classList.toggle('hidden', type !== 'nagad');
+        }
+
+        function updateData() {
+            const name = document.getElementById('in-user').value;
+            const num = document.getElementById('in-num').value;
+            const trx = document.getElementById('in-trx').value;
+            const amt = parseFloat(document.getElementById('in-amt').value || 0);
+            const chg = parseFloat(document.getElementById('in-chg').value || 0);
+            const time = document.getElementById('in-time').value;
+
+            // Only updates the header name if user inputs a name, 
+            // but defaults to "Nafiz Sheikh" as requested in HTML.
+            // Note: The download image contains the receipt part, not the header part based on ID 'receipt-canvas'.
+            
+            // Bkash Update
+            if(num) {
+                document.getElementById('bk-out-num').innerText = num;
+                document.getElementById('bk-out-num2').innerText = num;
+                document.getElementById('bk-initial').innerText = num.charAt(0);
+            }
+            if(trx) document.getElementById('bk-out-trx').innerHTML = `${trx} <i class="far fa-copy text-[#d12053] text-[10px]"></i>`;
+            if(amt || chg) {
+                document.getElementById('bk-out-total').innerText = `৳${(amt+chg).toLocaleString()}.00`;
+                document.getElementById('bk-out-break').innerText = `৳${amt.toLocaleString()}.00 + ৳${chg.toLocaleString()}.00`;
+            }
+            if(time) document.getElementById('bk-out-time').innerText = time;
+
+            // Nagad Update
+            if(num) document.getElementById('ng-out-num').innerText = num;
+            if(trx) document.getElementById('ng-out-trx').innerText = trx;
+            if(amt) document.getElementById('ng-out-amt').innerText = amt + ' টাকা';
+            if(amt || chg) document.getElementById('ng-out-total').innerText = (amt+chg) + ' টাকা';
+            if(time) document.getElementById('ng-out-time').innerText = time;
+        }
+
+        function downloadImage() {
+            // Only captures the receipt area, leaving header and inputs out of the image
+            html2canvas(document.getElementById('receipt-canvas'), { scale: 3 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Payment-Success-' + Date.now() + '.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
